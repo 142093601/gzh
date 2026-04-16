@@ -211,7 +211,7 @@ description: |
 ```json
 {
   "output_format": "html",
-  "html_content": "<h2 style=\"font-size:20px;font-weight:700;color:#1a1a2e;margin:20px 0 10px;\">文章主标题</h2>\n<p style=\"font-size:13px;color:#a0aec0;margin:0 0 20px;\">作者名 | 2026年4月16日</p>\n<p style=\"font-size:15px;line-height:1.75;color:#3f3f3f;margin:0 0 1.5em;letter-spacing:0.5px;\">导语内容，hook句，50字以内...</p>\n<hr style=\"border:none;border-top:1px solid #e2e8f0;margin:30px 0;\" />\n<h3 style=\"font-size:17px;font-weight:700;color:#1a1a2e;margin:30px 0 15px;border-left:4px solid #667eea;padding-left:12px;\">第一部分小标题</h3>\n<p style=\"font-size:15px;line-height:1.75;color:#3f3f3f;margin:0 0 1.5em;letter-spacing:0.5px;\">正文段落内容...</p>\n<img src=\"{{ILLUSTRATION_2_URL}}\" style=\"width:100%;border-radius:8px;margin:15px 0;\" />\n<p style=\"font-size:15px;line-height:1.75;color:#3f3f3f;margin:0 0 1.5em;letter-spacing:0.5px;\">更多正文...</p>\n<blockquote style=\"background:#f7fafc;border-left:4px solid #667eea;padding:15px 20px;margin:20px 0;border-radius:0 8px 8px 0;font-size:14px;color:#4a5568;line-height:1.75;\">金句或重点引用内容</blockquote>\n<p style=\"font-size:15px;line-height:1.75;color:#3f3f3f;margin:0 0 1.5em;\">结尾内容 + CTA引导</p>",
+  "html_content": "<div style=\"margin:0 0 24px;\"><img src=\"{{COVER_URL}}\" style=\"width:100%;border-radius:12px;display:block;margin:0 0 20px;\" /><h2 style=\"font-size:22px;font-weight:800;color:#1B1464;line-height:1.4;margin:0 0 12px;letter-spacing:1px;padding:0 4px;\">文章主标题</h2><div style=\"padding:0 4px;\"><span style=\"font-size:12px;color:#8B8BA7;\">作者名</span><span style=\"font-size:12px;color:#C8C8D8;margin:0 6px;\">·</span><span style=\"font-size:12px;color:#8B8BA7;\">2026年4月16日</span></div></div>\\n<div style=\"background:linear-gradient(135deg,#F5F3FF,#EDE9FE);border-left:4px solid #6C63FF;border-radius:0 12px 12px 0;padding:20px 24px;margin:0 0 28px;\"><p style=\"font-size:15px;line-height:1.8;color:#4A4A6A;margin:0;\">导语内容，hook句，50字以内...</p></div>\\n<div style=\"margin:36px 0 20px;\"><span style=\"display:inline-block;width:28px;height:28px;line-height:28px;text-align:center;background:linear-gradient(135deg,#6C63FF,#8B7CF6);color:#fff;font-size:13px;font-weight:700;border-radius:50%;vertical-align:middle;margin-right:10px;\">1</span><span style=\"font-size:18px;font-weight:700;color:#1B1464;vertical-align:middle;\">第一部分小标题</span></div><div style=\"height:2px;background:linear-gradient(90deg,#6C63FF,transparent);margin:0 0 20px;border-radius:1px;\"></div>\\n<p style=\"font-size:15px;line-height:1.8;color:#3f3f3f;margin:0 0 1.5em;letter-spacing:0.5px;\">正文段落内容...</p>\\n<div style=\"margin:20px 0;\"><img src=\"{{ILLUSTRATION_2_URL}}\" style=\"width:100%;border-radius:12px;display:block;box-shadow:0 4px 16px rgba(108,99,255,0.1);\" /></div>\\n<p style=\"font-size:15px;line-height:1.8;color:#3f3f3f;margin:0 0 1.5em;\">更多正文...</p>\\n<div style=\"background:linear-gradient(135deg,#F5F3FF,#EDE9FE);border-left:4px solid #6C63FF;border-radius:0 12px 12px 0;padding:20px 24px;margin:24px 0;\"><p style=\"font-size:15px;line-height:1.8;color:#4A4A6A;margin:0;font-style:italic;\">金句或重点引用内容</p></div>\\n<div style=\"text-align:center;margin:32px 0;\"><span style=\"display:block;height:1px;background:linear-gradient(90deg,transparent,#E8E6F0 30%,#6C63FF 50%,#E8E6F0 70%,transparent);\"></span><span style=\"display:block;margin:12px auto 0;font-size:14px;color:#C8C8D8;letter-spacing:8px;\">✦ ✦ ✦</span></div>\\n<div style=\"background:linear-gradient(135deg,#1B1464,#2D2A5E);border-radius:12px;padding:28px 24px;text-align:center;margin:32px 0;\"><p style=\"font-size:16px;font-weight:700;color:#fff;margin:0 0 8px;letter-spacing:1px;\">觉得有用？</p><p style=\"font-size:14px;color:rgba(255,255,255,0.8);margin:0 0 16px;\">点赞 + 在看，让更多人看到 ❤️</p><div style=\"display:inline-block;background:#6C63FF;color:#fff;font-size:14px;font-weight:600;padding:10px 28px;border-radius:24px;\">立即关注 →</div></div>",
   "image_slots": [
     {
       "slot_id": "ILLUSTRATION_2",
@@ -232,14 +232,21 @@ description: |
 
 **HTML 输出规则（必须遵守）**：
 
-1. **所有样式必须内联**：公众号编辑器不支持 `<style>` 标签或外部 CSS
+1. **所有样式必须内联**：公众号编辑器不支持 `<style>` 标签或外部 CSS。详细模板和组件参见 `references/layout.md`
 2. **配图使用占位符**：用 `{{ILLUSTRATION_N_URL}}` 占位，扣子工作流中由图像流节点替换为实际 URL
-3. **标题**：`<h2>` 用 `font-size:20px;font-weight:700;color:#1a1a2e`
-4. **小标题**：`<h3>` 用 `font-size:17px;font-weight:700;color:#1a1a2e;border-left:4px solid #667eea;padding-left:12px`
-5. **正文**：`<p>` 用 `font-size:15px;line-height:1.75;color:#3f3f3f;letter-spacing:0.5px`
-6. **引用块**：`<blockquote>` 用 `background:#f7fafc;border-left:4px solid #667eea;padding:15px 20px`
-7. **分割线**：`<hr>` 用 `border:none;border-top:1px solid #e2e8f0;margin:30px 0`
-8. **段间距**：正文段落 `margin:0 0 1.5em`，章节间 `margin:30px 0`
+3. **标题区域**：封面图 `border-radius:12px` + 大标题 `font-size:22px;font-weight:800;color:#1B1464` + 作者行用 `inline-block` 拼接
+4. **导语**：用渐变背景卡片 `background:linear-gradient(135deg,#F5F3FF,#EDE9FE);border-left:4px solid #6C63FF;border-radius:0 12px 12px 0;padding:20px 24px`
+5. **章节标题**：编号圆形 `background:linear-gradient(135deg,#6C63FF,#8B7CF6);border-radius:50%` + 标题文字 + 下方渐变装饰线 `background:linear-gradient(90deg,#6C63FF,transparent)`
+6. **正文**：`<p>` 用 `font-size:15px;line-height:1.8;color:#3f3f3f;letter-spacing:0.5px`（行高从 1.75 提升到 1.8）
+7. **金句引用**：渐变背景卡片 + 左色条 + `font-style:italic`（不要用 `<blockquote>`，改用 `<div>` 包裹 `<p>`）
+8. **数字高亮**：独立渐变卡片 `background:linear-gradient(135deg,#6C63FF,#8B7CF6);border-radius:12px;padding:24px;text-align:center` 数字 `font-size:36px;color:#fff`
+9. **信息卡片**：浅底 + 边框 `background:#F5F3FF;border:1px solid #E8E6F0;border-radius:12px;padding:20px 24px`
+10. **分割线**：渐变线 + 居中符号 ✦ ✦ ✦（不要用 `<hr>`）
+11. **配图**：`border-radius:12px;box-shadow:0 4px 16px rgba(108,99,255,0.1)` 增加层次感
+12. **CTA**：深色渐变圆角卡片 `background:linear-gradient(135deg,#1B1464,#2D2A5E);border-radius:12px;padding:28px 24px;text-align:center`
+13. **尾部**：`— THE END —` + 底部渐变装饰线
+14. **圆角统一**：全文所有圆角组件统一 `12px`
+15. **禁止 `display:flex`**：微信中不稳定，全部用 `display:inline-block` + `vertical-align`
 
 ## 参考资料
 
