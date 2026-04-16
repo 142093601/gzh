@@ -109,144 +109,113 @@ description: |
 
 ## 扣子工作流 JSON 输出格式
 
-**重要：当用户明确表示要在扣子工作流中使用时，必须严格按照以下 JSON 格式输出。每个节点的数据格式必须与扣子工作流中对应的节点类型匹配。**
+**重要：当用户明确表示要在扣子工作流中使用时，必须严格按照以下 JSON 格式输出。**
 
-### 节点 1：判断文章长度
+### 输出架构（2 个节点）
 
-扣子工作流中的"判断文章长度"节点需要接收结构化 JSON，用于判断文章属于长文/中等/短文，从而决定配图数量和排版策略。
+扣子工作流推荐用 **2 个节点** 完成文章生成 + 配图：
+
+```
+[AI 大模型节点] → 生成文章 JSON（含 html_content + image_prompts）
+         ↓
+[图像流节点]    → 读取 image_prompts，生成图片，回填到 html_content
+         ↓
+[输出]          → 带图片的完整 HTML
+```
+
+**关键：AI 节点只生成文字（HTML + 配图 prompt），图片生成必须由扣子的「图像流」节点完成。**
+
+### 节点 1：文章生成（AI 大模型节点）
+
+AI 节点输出一个 JSON，包含完整的 HTML 和配图 prompt 列表：
 
 ```json
 {
   "title": "文章主标题",
-  "subtitle": "副标题（可选）",
   "word_count": 1500,
   "length_category": "medium",
-  "sections": [
+  "color_scheme": "A",
+  "hook_type": "数据震撼型",
+
+  "html_content": "<完整的 HTML 字符串，配图位置用 IMG_PLACEHOLDER_N 标记>",
+
+  "image_prompts": [
     {
-      "section_id": 1,
-      "title": "第一部分小标题",
-      "word_count": 400,
-      "content_summary": "本段核心内容一句话概括"
+      "id": "IMG_PLACEHOLDER_1",
+      "position": "封面图",
+      "prompt": "A clean, modern editorial illustration for a tech article. Minimal flat design with geometric shapes. Color palette: deep blue (#1B1464), white, violet accent (#6C63FF). Abstract representation of AI technology. No text, no watermark. 16:9 ratio, high quality.",
+      "size": "1472x832"
     },
     {
-      "section_id": 2,
-      "title": "第二部分小标题",
-      "word_count": 500,
-      "content_summary": "本段核心内容一句话概括"
+      "id": "IMG_PLACEHOLDER_2",
+      "position": "第一部分结束后",
+      "prompt": "Editorial illustration, flat design, depicting a person working efficiently with AI tools on laptop. Colors: navy (#1B1464) and violet (#6C63FF). Clean minimal modern style, soft shadows. No text. Square format, mobile-friendly.",
+      "size": "1024x1024"
+    },
+    {
+      "id": "IMG_PLACEHOLDER_3",
+      "position": "第二部分结束后",
+      "prompt": "Infographic-style editorial illustration showing data visualization with charts and graphs. Colors: navy (#1B1464), violet (#6C63FF), white. Minimal professional, no clutter. Square format.",
+      "size": "1024x1024"
     }
   ],
-  "total_sections": 2,
-  "hook_type": "数据震撼型",
-  "color_scheme": "A",
-  "template": "standard"
+
+  "metadata": {
+    "sections": ["第一部分标题", "第二部分标题"],
+    "total_images": 3,
+    "template": "standard"
+  }
 }
 ```
 
-**字段说明**：
-- `length_category`: "short"(<800字) | "medium"(800-2000字) | "long"(>2000字)
-- `hook_type`: 见 hooks.md，必须是 10 种之一
-- `color_scheme`: "A"|"B"|"C"|"D"，对应 layout.md 配色方案
-- `template`: "standard"|"data"|"story"|"hotspot"
+**html_content 中配图标记的写法**：
 
-### 节点 2：循环（正文配图循环）
+在 HTML 中需要插入图片的位置，使用 `<img src="IMG_PLACEHOLDER_N">` 作为标记。扣子的图像流节点生成图片后，将 `IMG_PLACEHOLDER_1` 替换为实际图片 URL 即可。
 
-扣子工作流的"循环"节点需要一个数组来迭代，每项包含配图位置和 prompt。
-
-```json
-{
-  "illustrations": [
-    {
-      "id": 1,
-      "position": "cover",
-      "position_desc": "文章封面图",
-      "prompt": "A clean, modern editorial illustration for a tech article. Minimal flat design with geometric shapes. Color palette: deep blue (#1a1a2e), white, coral accent (#e94560). Abstract representation of artificial intelligence. No text, no watermark. 16:9 ratio, high quality.",
-      "size": "1472x832",
-      "aspect_ratio": "16:9"
-    },
-    {
-      "id": 2,
-      "position": "after_section_1",
-      "position_desc": "第一部分结束后",
-      "prompt": "Editorial illustration, flat design style, depicting a person analyzing data on multiple screens. Color scheme matching article: #1a1a2e and #667eea. Clean, minimal, modern. No text overlay. Suitable for mobile reading.",
-      "size": "1024x1024",
-      "aspect_ratio": "1:1"
-    },
-    {
-      "id": 3,
-      "position": "after_section_2",
-      "position_desc": "第二部分结束后",
-      "prompt": "Minimalist character illustration, modern editorial style. A team collaborating around a digital whiteboard with charts. Soft color palette, clean lines. No text, no watermark. Square format.",
-      "size": "1024x1024",
-      "aspect_ratio": "1:1"
-    }
-  ],
-  "total_count": 3
-}
+示例 HTML 片段（注意配图标记）：
+```html
+<p>上一段正文...</p>
+<img src="IMG_PLACEHOLDER_2" style="width:100%;border-radius:12px;display:block;box-shadow:0 4px 16px rgba(108,99,255,0.1);margin:20px 0;" />
+<p>下一段正文...</p>
 ```
 
 **配图数量规则**：
 - short（<800字）：1 张封面 + 1 张正文 = 2 张
-- medium（800-2000字）：1 张封面 + 2-3 张正文 = 3-4 张
+- medium（800-2000字）：1 张封面 + 2 张正文 = 3 张
 - long（>2000字）：1 张封面 + 每 500-800 字 1 张正文
 
-### 节点 3：正文配图
+**配图位置策略**：
+- 封面图：文章最顶部
+- 正文配图：每 1-2 个章节之间插入一张
+- 避免：连续两张配图、配图离相关文字太远
 
-每个配图节点处理单张图片的生成，输入为循环数组中的单个 item。
+### 节点 2：图像流（扣子图像流节点）
 
-```json
-{
-  "image_request": {
-    "prompt": "Editorial illustration, flat design style, depicting...",
-    "size": "1024x1024",
-    "position": "after_section_1",
-    "fallback_placeholder": "<!-- ILLUSTRATION_2 -->"
-  }
-}
+用户在扣子工作流中需要配置一个图像流节点来处理正文配图。
+
+**扣子图像流节点配置建议**：
+
+1. **输入**：读取 `image_prompts` 数组中的 `prompt` 字段
+2. **模型**：doubao-seedream 或其他扣子内置图像模型
+3. **尺寸**：跟随每个 prompt 的 `size` 字段（封面 1472×832，正文 1024×1024）
+4. **循环模式**：如果有多张配图，使用「批处理」或「循环」节点遍历 `image_prompts` 数组
+5. **输出**：生成的图片 URL
+
+**扣子图像流后的文本替换**：
+
+图像流节点生成 URL 后，需要将 html_content 中的 `IMG_PLACEHOLDER_1`、`IMG_PLACEHOLDER_2` 等替换为实际 URL。在扣子中可以用「文本替换」节点或「代码」节点完成：
+
+```
+html_content = html_content.replace("IMG_PLACEHOLDER_1", "https://生成的图片URL1")
+html_content = html_content.replace("IMG_PLACEHOLDER_2", "https://生成的图片URL2")
 ```
 
-### 节点 4：排版并输出（最终 HTML 输出）
+### 如果不使用图像流节点
 
-扣子工作流的"排版并输出"节点接收完整文章数据，输出可直接粘贴到公众号编辑器的 HTML 片段。
+如果用户暂时不配置图像流节点，html_content 中的 `<img src="IMG_PLACEHOLDER_N">` 会显示为破损图片。建议：
 
-```json
-{
-  "output_format": "html",
-  "html_content": "<div style=\"margin:0 0 24px;\"><img src=\"{{COVER_URL}}\" style=\"width:100%;border-radius:12px;display:block;margin:0 0 20px;\" /><h2 style=\"font-size:22px;font-weight:800;color:#1B1464;line-height:1.4;margin:0 0 12px;letter-spacing:1px;padding:0 4px;\">文章主标题</h2><div style=\"padding:0 4px;\"><span style=\"font-size:12px;color:#8B8BA7;\">作者名</span><span style=\"font-size:12px;color:#C8C8D8;margin:0 6px;\">·</span><span style=\"font-size:12px;color:#8B8BA7;\">2026年4月16日</span></div></div>\\n<div style=\"background:linear-gradient(135deg,#F5F3FF,#EDE9FE);border-left:4px solid #6C63FF;border-radius:0 12px 12px 0;padding:20px 24px;margin:0 0 28px;\"><p style=\"font-size:15px;line-height:1.8;color:#4A4A6A;margin:0;\">导语内容，hook句，50字以内...</p></div>\\n<div style=\"margin:36px 0 20px;\"><span style=\"display:inline-block;width:28px;height:28px;line-height:28px;text-align:center;background:linear-gradient(135deg,#6C63FF,#8B7CF6);color:#fff;font-size:13px;font-weight:700;border-radius:50%;vertical-align:middle;margin-right:10px;\">1</span><span style=\"font-size:18px;font-weight:700;color:#1B1464;vertical-align:middle;\">第一部分小标题</span></div><div style=\"height:2px;background:linear-gradient(90deg,#6C63FF,transparent);margin:0 0 20px;border-radius:1px;\"></div>\\n<p style=\"font-size:15px;line-height:1.8;color:#3f3f3f;margin:0 0 1.5em;letter-spacing:0.5px;\">正文段落内容...</p>\\n<div style=\"margin:20px 0;\"><img src=\"{{ILLUSTRATION_2_URL}}\" style=\"width:100%;border-radius:12px;display:block;box-shadow:0 4px 16px rgba(108,99,255,0.1);\" /></div>\\n<p style=\"font-size:15px;line-height:1.8;color:#3f3f3f;margin:0 0 1.5em;\">更多正文...</p>\\n<div style=\"background:linear-gradient(135deg,#F5F3FF,#EDE9FE);border-left:4px solid #6C63FF;border-radius:0 12px 12px 0;padding:20px 24px;margin:24px 0;\"><p style=\"font-size:15px;line-height:1.8;color:#4A4A6A;margin:0;font-style:italic;\">金句或重点引用内容</p></div>\\n<div style=\"text-align:center;margin:32px 0;\"><span style=\"display:block;height:1px;background:linear-gradient(90deg,transparent,#E8E6F0 30%,#6C63FF 50%,#E8E6F0 70%,transparent);\"></span><span style=\"display:block;margin:12px auto 0;font-size:14px;color:#C8C8D8;letter-spacing:8px;\">✦ ✦ ✦</span></div>\\n<div style=\"background:linear-gradient(135deg,#1B1464,#2D2A5E);border-radius:12px;padding:28px 24px;text-align:center;margin:32px 0;\"><p style=\"font-size:16px;font-weight:700;color:#fff;margin:0 0 8px;letter-spacing:1px;\">觉得有用？</p><p style=\"font-size:14px;color:rgba(255,255,255,0.8);margin:0 0 16px;\">点赞 + 在看，让更多人看到 ❤️</p><div style=\"display:inline-block;background:#6C63FF;color:#fff;font-size:14px;font-weight:600;padding:10px 28px;border-radius:24px;\">立即关注 →</div></div>",
-  "image_slots": [
-    {
-      "slot_id": "ILLUSTRATION_2",
-      "position_after": "第一部分小标题",
-      "description": "第一部分配图占位符"
-    }
-  ],
-  "cover_image_prompt": "A clean, modern editorial illustration...",
-  "metadata": {
-    "title": "文章主标题",
-    "word_count": 1500,
-    "section_count": 2,
-    "image_count": 3,
-    "color_scheme": "A"
-  }
-}
-```
-
-**HTML 输出规则（必须遵守）**：
-
-1. **所有样式必须内联**：公众号编辑器不支持 `<style>` 标签或外部 CSS。详细模板和组件参见 `references/layout.md`
-2. **配图使用占位符**：用 `{{ILLUSTRATION_N_URL}}` 占位，扣子工作流中由图像流节点替换为实际 URL
-3. **标题区域**：封面图 `border-radius:12px` + 大标题 `font-size:22px;font-weight:800;color:#1B1464` + 作者行用 `inline-block` 拼接
-4. **导语**：用渐变背景卡片 `background:linear-gradient(135deg,#F5F3FF,#EDE9FE);border-left:4px solid #6C63FF;border-radius:0 12px 12px 0;padding:20px 24px`
-5. **章节标题**：编号圆形 `background:linear-gradient(135deg,#6C63FF,#8B7CF6);border-radius:50%` + 标题文字 + 下方渐变装饰线 `background:linear-gradient(90deg,#6C63FF,transparent)`
-6. **正文**：`<p>` 用 `font-size:15px;line-height:1.8;color:#3f3f3f;letter-spacing:0.5px`（行高从 1.75 提升到 1.8）
-7. **金句引用**：渐变背景卡片 + 左色条 + `font-style:italic`（不要用 `<blockquote>`，改用 `<div>` 包裹 `<p>`）
-8. **数字高亮**：独立渐变卡片 `background:linear-gradient(135deg,#6C63FF,#8B7CF6);border-radius:12px;padding:24px;text-align:center` 数字 `font-size:36px;color:#fff`
-9. **信息卡片**：浅底 + 边框 `background:#F5F3FF;border:1px solid #E8E6F0;border-radius:12px;padding:20px 24px`
-10. **分割线**：渐变线 + 居中符号 ✦ ✦ ✦（不要用 `<hr>`）
-11. **配图**：`border-radius:12px;box-shadow:0 4px 16px rgba(108,99,255,0.1)` 增加层次感
-12. **CTA**：深色渐变圆角卡片 `background:linear-gradient(135deg,#1B1464,#2D2A5E);border-radius:12px;padding:28px 24px;text-align:center`
-13. **尾部**：`— THE END —` + 底部渐变装饰线
-14. **圆角统一**：全文所有圆角组件统一 `12px`
-15. **禁止 `display:flex`**：微信中不稳定，全部用 `display:inline-block` + `vertical-align`
+1. 在 AI 节点的 prompt 中加入指令："如果无法生成图片，在 IMG_PLACEHOLDER 位置输出一个优雅的装饰性文字卡片代替图片"
+2. 或者：HTML 中不输出 `<img>` 标签，改用纯文字组件（信息卡片、数字卡片等）填充视觉空白
 
 ## 参考资料
 
