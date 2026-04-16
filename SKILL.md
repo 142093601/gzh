@@ -86,7 +86,7 @@ description: |
 - 封面图 prompt + 正文插图 prompt 分开输出
 
 **5.5 扣子工作流输出**
-- 如果用户使用扣子工作流，按 layout.md 第七节的 HTML 片段格式输出
+- 如果用户使用扣子工作流，按下方"扣子工作流 JSON 输出格式"输出结构化数据
 - 确保所有样式内联（公众号编辑器不支持外部 CSS）
 
 ### 6. 发布前自检
@@ -107,6 +107,140 @@ description: |
 ### 模板 D：热点解读型
 > 热点引入 → 事件梳理 → 深度分析 → 个人观点 → 互动提问
 
+## 扣子工作流 JSON 输出格式
+
+**重要：当用户明确表示要在扣子工作流中使用时，必须严格按照以下 JSON 格式输出。每个节点的数据格式必须与扣子工作流中对应的节点类型匹配。**
+
+### 节点 1：判断文章长度
+
+扣子工作流中的"判断文章长度"节点需要接收结构化 JSON，用于判断文章属于长文/中等/短文，从而决定配图数量和排版策略。
+
+```json
+{
+  "title": "文章主标题",
+  "subtitle": "副标题（可选）",
+  "word_count": 1500,
+  "length_category": "medium",
+  "sections": [
+    {
+      "section_id": 1,
+      "title": "第一部分小标题",
+      "word_count": 400,
+      "content_summary": "本段核心内容一句话概括"
+    },
+    {
+      "section_id": 2,
+      "title": "第二部分小标题",
+      "word_count": 500,
+      "content_summary": "本段核心内容一句话概括"
+    }
+  ],
+  "total_sections": 2,
+  "hook_type": "数据震撼型",
+  "color_scheme": "A",
+  "template": "standard"
+}
+```
+
+**字段说明**：
+- `length_category`: "short"(<800字) | "medium"(800-2000字) | "long"(>2000字)
+- `hook_type`: 见 hooks.md，必须是 10 种之一
+- `color_scheme`: "A"|"B"|"C"|"D"，对应 layout.md 配色方案
+- `template`: "standard"|"data"|"story"|"hotspot"
+
+### 节点 2：循环（正文配图循环）
+
+扣子工作流的"循环"节点需要一个数组来迭代，每项包含配图位置和 prompt。
+
+```json
+{
+  "illustrations": [
+    {
+      "id": 1,
+      "position": "cover",
+      "position_desc": "文章封面图",
+      "prompt": "A clean, modern editorial illustration for a tech article. Minimal flat design with geometric shapes. Color palette: deep blue (#1a1a2e), white, coral accent (#e94560). Abstract representation of artificial intelligence. No text, no watermark. 16:9 ratio, high quality.",
+      "size": "1472x832",
+      "aspect_ratio": "16:9"
+    },
+    {
+      "id": 2,
+      "position": "after_section_1",
+      "position_desc": "第一部分结束后",
+      "prompt": "Editorial illustration, flat design style, depicting a person analyzing data on multiple screens. Color scheme matching article: #1a1a2e and #667eea. Clean, minimal, modern. No text overlay. Suitable for mobile reading.",
+      "size": "1024x1024",
+      "aspect_ratio": "1:1"
+    },
+    {
+      "id": 3,
+      "position": "after_section_2",
+      "position_desc": "第二部分结束后",
+      "prompt": "Minimalist character illustration, modern editorial style. A team collaborating around a digital whiteboard with charts. Soft color palette, clean lines. No text, no watermark. Square format.",
+      "size": "1024x1024",
+      "aspect_ratio": "1:1"
+    }
+  ],
+  "total_count": 3
+}
+```
+
+**配图数量规则**：
+- short（<800字）：1 张封面 + 1 张正文 = 2 张
+- medium（800-2000字）：1 张封面 + 2-3 张正文 = 3-4 张
+- long（>2000字）：1 张封面 + 每 500-800 字 1 张正文
+
+### 节点 3：正文配图
+
+每个配图节点处理单张图片的生成，输入为循环数组中的单个 item。
+
+```json
+{
+  "image_request": {
+    "prompt": "Editorial illustration, flat design style, depicting...",
+    "size": "1024x1024",
+    "position": "after_section_1",
+    "fallback_placeholder": "<!-- ILLUSTRATION_2 -->"
+  }
+}
+```
+
+### 节点 4：排版并输出（最终 HTML 输出）
+
+扣子工作流的"排版并输出"节点接收完整文章数据，输出可直接粘贴到公众号编辑器的 HTML 片段。
+
+```json
+{
+  "output_format": "html",
+  "html_content": "<h2 style=\"font-size:20px;font-weight:700;color:#1a1a2e;margin:20px 0 10px;\">文章主标题</h2>\n<p style=\"font-size:13px;color:#a0aec0;margin:0 0 20px;\">作者名 | 2026年4月16日</p>\n<p style=\"font-size:15px;line-height:1.75;color:#3f3f3f;margin:0 0 1.5em;letter-spacing:0.5px;\">导语内容，hook句，50字以内...</p>\n<hr style=\"border:none;border-top:1px solid #e2e8f0;margin:30px 0;\" />\n<h3 style=\"font-size:17px;font-weight:700;color:#1a1a2e;margin:30px 0 15px;border-left:4px solid #667eea;padding-left:12px;\">第一部分小标题</h3>\n<p style=\"font-size:15px;line-height:1.75;color:#3f3f3f;margin:0 0 1.5em;letter-spacing:0.5px;\">正文段落内容...</p>\n<img src=\"{{ILLUSTRATION_2_URL}}\" style=\"width:100%;border-radius:8px;margin:15px 0;\" />\n<p style=\"font-size:15px;line-height:1.75;color:#3f3f3f;margin:0 0 1.5em;letter-spacing:0.5px;\">更多正文...</p>\n<blockquote style=\"background:#f7fafc;border-left:4px solid #667eea;padding:15px 20px;margin:20px 0;border-radius:0 8px 8px 0;font-size:14px;color:#4a5568;line-height:1.75;\">金句或重点引用内容</blockquote>\n<p style=\"font-size:15px;line-height:1.75;color:#3f3f3f;margin:0 0 1.5em;\">结尾内容 + CTA引导</p>",
+  "image_slots": [
+    {
+      "slot_id": "ILLUSTRATION_2",
+      "position_after": "第一部分小标题",
+      "description": "第一部分配图占位符"
+    }
+  ],
+  "cover_image_prompt": "A clean, modern editorial illustration...",
+  "metadata": {
+    "title": "文章主标题",
+    "word_count": 1500,
+    "section_count": 2,
+    "image_count": 3,
+    "color_scheme": "A"
+  }
+}
+```
+
+**HTML 输出规则（必须遵守）**：
+
+1. **所有样式必须内联**：公众号编辑器不支持 `<style>` 标签或外部 CSS
+2. **配图使用占位符**：用 `{{ILLUSTRATION_N_URL}}` 占位，扣子工作流中由图像流节点替换为实际 URL
+3. **标题**：`<h2>` 用 `font-size:20px;font-weight:700;color:#1a1a2e`
+4. **小标题**：`<h3>` 用 `font-size:17px;font-weight:700;color:#1a1a2e;border-left:4px solid #667eea;padding-left:12px`
+5. **正文**：`<p>` 用 `font-size:15px;line-height:1.75;color:#3f3f3f;letter-spacing:0.5px`
+6. **引用块**：`<blockquote>` 用 `background:#f7fafc;border-left:4px solid #667eea;padding:15px 20px`
+7. **分割线**：`<hr>` 用 `border:none;border-top:1px solid #e2e8f0;margin:30px 0`
+8. **段间距**：正文段落 `margin:0 0 1.5em`，章节间 `margin:30px 0`
+
 ## 参考资料
 
 - **风格范例库**：[references/styles.md](references/styles.md) — 10+ 头部账号风格拆解
@@ -118,4 +252,8 @@ description: |
 
 默认用中文回复，结构清晰。大纲和标题部分使用列表格式方便用户直接使用。正文部分用自然段落，附带排版标记建议。
 
-当用户使用扣子工作流时，正文和排版统一用内联 CSS 的 HTML 片段输出，配图 prompt 单独列出。
+当用户使用扣子工作流时，严格按照上方"扣子工作流 JSON 输出格式"输出各节点所需的结构化 JSON 数据。确保：
+1. JSON 格式严格合法，无语法错误
+2. 字段名称与扣子工作流节点变量名一致
+3. 数值类型正确（word_count 为数字而非字符串）
+4. HTML 内容中的引号使用转义 `\"`
