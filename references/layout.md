@@ -129,7 +129,7 @@
 
 ```html
 <div style="margin:0 0 24px;">
-  <img src="{{COVER_URL}}" style="width:100%;border-radius:12px;display:block;margin:0 0 20px;" />
+  <img src="{{COVER_URL}}" style="width:100%;max-width:100%;border-radius:12px;display:block;margin:0 0 20px;height:auto;" />
   <h2 style="font-size:22px;font-weight:800;color:#1B1464;line-height:1.4;margin:0 0 12px;letter-spacing:1px;padding:0 4px;">
     文章主标题
   </h2>
@@ -242,14 +242,21 @@
 <span style="display:inline-block;background:linear-gradient(135deg,#6C63FF,#8B7CF6);color:#fff;font-size:12px;font-weight:600;padding:4px 14px;border-radius:20px;letter-spacing:1px;margin-right:8px;">科技</span>
 ```
 
-### 组件 12：配图（圆角 + 阴影）
+### 组件 12：配图（圆角 + 阴影 + 排版保护）
 
 ```html
-<div style="margin:20px 0;">
-  <img src="{{IMAGE_URL}}" style="width:100%;border-radius:12px;display:block;box-shadow:0 4px 16px rgba(108,99,255,0.1);" />
+<div style="margin:24px 0;text-align:center;">
+  <img src="{{IMAGE_URL}}" style="width:100%;max-width:100%;border-radius:12px;display:inline-block;box-shadow:0 4px 16px rgba(108,99,255,0.1);height:auto;" />
   <p style="font-size:12px;color:#8B8BA7;text-align:center;margin:10px 0 0;">图片说明</p>
 </div>
 ```
+
+**注意事项**：
+- 外层 `div` 的 `text-align:center` + 内层 `img` 的 `display:inline-block` 是微信公众号最稳定的图片居中方案
+- `max-width:100%` 防止图片溢出
+- `height:auto` 保持比例不变形
+- 不要在图片容器内使用 `float` 或 `flex`
+- 图片前后必须有段落分隔，不要紧贴标题/分割线
 
 ### 组件 13：编号步骤
 
@@ -283,7 +290,7 @@
 
 ```html
 <div style="margin:0 0 24px;">
-  <img src="{{COVER_URL}}" style="width:100%;border-radius:12px;display:block;margin:0 0 20px;" />
+  <img src="{{COVER_URL}}" style="width:100%;max-width:100%;border-radius:12px;display:block;margin:0 0 20px;height:auto;" />
   <h2 style="font-size:22px;font-weight:800;color:#1B1464;line-height:1.4;margin:0 0 12px;letter-spacing:1px;padding:0 4px;">
     文章主标题
   </h2>
@@ -306,8 +313,8 @@
 
 <p style="font-size:15px;line-height:1.8;color:#3f3f3f;margin:0 0 1.5em;letter-spacing:0.5px;">正文段落...</p>
 
-<div style="margin:20px 0;">
-  <img src="{{IMAGE_URL}}" style="width:100%;border-radius:12px;display:block;box-shadow:0 4px 16px rgba(108,99,255,0.1);" />
+<div style="margin:24px 0;text-align:center;">
+  <img src="{{IMAGE_URL}}" style="width:100%;max-width:100%;border-radius:12px;display:inline-block;box-shadow:0 4px 16px rgba(108,99,255,0.1);height:auto;" />
 </div>
 
 <div style="background:linear-gradient(135deg,#F5F3FF,#EDE9FE);border-left:4px solid #6C63FF;border-radius:0 12px 12px 0;padding:20px 24px;margin:24px 0;">
@@ -369,7 +376,7 @@
 
 ```html
 <div style="margin:0 0 24px;">
-  <img src="{{COVER_URL}}" style="width:100%;border-radius:16px;display:block;margin:0 0 24px;" />
+  <img src="{{COVER_URL}}" style="width:100%;max-width:100%;border-radius:16px;display:block;margin:0 0 24px;height:auto;" />
 </div>
 <div style="text-align:center;margin:0 0 20px;">
   <h2 style="font-size:22px;font-weight:800;color:#2C2C2C;line-height:1.5;margin:0 0 16px;">

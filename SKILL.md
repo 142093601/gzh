@@ -80,7 +80,51 @@ description: |
 
 **5.3 视觉组件** — 引用块、高亮标注、分割线、标签的统一样式
 
-**5.4 AI 配图生成**
+**5.4 AI 配图生成（OpenClaw 直接使用时）**
+
+当在 OpenClaw 中直接生成文章（非扣子工作流）时，按以下流程生成配图：
+
+**第一步：规划配图**
+- 根据文章内容确定配图数量和位置（封面 + 每 1-2 个章节之间）
+- 每张配图明确：位置、内容方向、风格、配色方案
+
+**第二步：生成 SVG 插图**
+- 使用 svg-draw skill 生成配图：读取 SKILL.md，按其流程编写 SVG 代码
+- SVG 必须内联所有样式，使用配色方案中的色值
+- 封面图尺寸建议 900×500（16:9），正文插图建议 800×800（1:1）或 900×500
+- SVG 中使用几何形状、色块、抽象图形——避免需要位图的内容
+- 生成后用 svg-draw 的 rsvg-convert 转为 PNG
+
+**第三步：嵌入 HTML**
+- 将生成的 PNG 图片用 `<img>` 标签嵌入 HTML 文章
+- 图片 src 使用实际文件路径或 base64 data URI
+- 每张图片必须用"图片容器组件"包裹（见下方），不要裸 `<img>` 标签
+
+**图片容器组件（必须使用）**：
+```html
+<div style="margin:24px 0;text-align:center;">
+  <img src="实际图片路径或base64" style="width:100%;max-width:100%;border-radius:12px;display:inline-block;box-shadow:0 4px 16px rgba(108,99,255,0.1);height:auto;" />
+</div>
+```
+
+**排版保护规则（防止图片撑破布局）**：
+- `<img>` 必须设置 `width:100%;max-width:100%;height:auto` 三件套
+- 图片外层必须有 `<div>` 容器包裹，设置 `margin:24px 0` 与上下文隔开
+- 图片前后必须有 `<p>` 段落分隔，不要让图片紧贴标题或分割线
+- 不要用 `display:flex` 包裹图片（微信不兼容）
+- 封面图用 `border-radius:12px`，正文插图同
+- 图片容器内不要放其他浮动元素
+
+**如果无法生成图片时的降级方案**：
+用装饰性视觉卡片替代 `<img>`，保持排版完整：
+```html
+<div style="background:linear-gradient(135deg,#F5F3FF,#EDE9FE);border:1px solid #E8E6F0;border-radius:12px;padding:28px 24px;text-align:center;margin:24px 0;">
+  <p style="font-size:28px;margin:0 0 10px;">🎨</p>
+  <p style="font-size:13px;color:#8B8BA7;margin:0;line-height:1.6;">配图位置：数据可视化图表</p>
+</div>
+```
+
+**5.4 扣子工作流配图生成（使用扣子时）**
 - 确定每张配图的位置和内容方向
 - 生成扣子图像流可用的英文 prompt（参考 layout.md 第六节）
 - 封面图 prompt + 正文插图 prompt 分开输出

@@ -143,10 +143,24 @@ async def main(args: Args) -> Output:
             )
             html = html.replace(f'<img src="{pid}"', f'{card}<!-- replaced:{pid} --><div style="display:none"><img src="REMOVED')
     
-    # 清理残留的未闭合img标签
-    html = re.sub(r'<div style="display:none"><img src="REMOVED[^"]*"[^>]*>', '', html)
-    # 清理残留的IMG占位符img标签
-    html = re.sub(r'<img\s+src="IMG_\d+"[^>]*/?>', '', html)
+    # 清理所有残留的IMG占位符img标签（替换为装饰卡片）
+    def replace_placeholder(match):
+        pid = match.group(1)
+        # 查找对应的prompt描述
+        desc = "配图"
+        for p in prompts:
+            if p.get("id") == pid:
+                desc = p.get("prompt", "")[:40]
+                break
+        return (
+            f'<div style="background:linear-gradient(135deg,#F5F3FF,#EDE9FE);'
+            f'border:1px solid #E8E6F0;border-radius:12px;padding:24px;text-align:center;margin:24px 0;">'
+            f'<p style="font-size:24px;margin:0 0 8px;">🎨</p>'
+            f'<p style="font-size:13px;color:#8B8BA7;margin:0;line-height:1.6;">{desc}</p></div>'
+        )
+    html = re.sub(r'<img[^>]*src="(IMG_\d+)"[^>]*/?>', replace_placeholder, html)
+    # 清理残留的display:none容器
+    html = re.sub(r'<div style="display:none">[^<]*</div>', '', html)
     
     return {"final_html": html}
 ```
